@@ -42,6 +42,11 @@ pnpm install
 pnpm dev
 ```
 
+## 本地覆盖（不提交）
+
+- `nuxt.app.config.local.ts` 用于覆盖 `app` 配置（标题/Meta/字体链接）。
+- `nuxt.config.local.ts` 可覆盖任意 Nuxt 配置。
+
 ## 分支流程（模板 vs 私有内容）
 
 - `main` 是公开模板分支。

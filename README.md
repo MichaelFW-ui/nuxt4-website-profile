@@ -42,6 +42,11 @@ pnpm install
 pnpm dev
 ```
 
+## Local overrides (not committed)
+
+- `nuxt.app.config.local.ts` overrides `app` config (title/meta/links).
+- `nuxt.config.local.ts` overrides any Nuxt config settings.
+
 ## Branching workflow (template vs. private content)
 
 - `main` is the public template branch.
