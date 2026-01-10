@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+allowed_branch="main"
+blocked_branch="md"
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+  case "$local_ref" in
+    "refs/heads/${blocked_branch}")
+      echo "Push blocked: '${blocked_branch}' branch is private." >&2
+      exit 1
+      ;;
+    refs/heads/*)
+      if [ "$local_ref" != "refs/heads/${allowed_branch}" ]; then
+        echo "Push blocked: only '${allowed_branch}' can be pushed." >&2
+        echo "Attempted: ${local_ref}" >&2
+        exit 1
+      fi
+      ;;
+    refs/tags/*)
+      # Allow tags by default.
+      ;;
+  esac
+done

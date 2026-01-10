@@ -1,0 +1,82 @@
+# Nuxt Research Hub
+
+英文版: `README.md` | 中文版: `README_CN.md`
+
+一个 Nuxt 4 脚手架，将博客、论文库、论文主页、简历和个人应用整合在同一结构中，基于 Nuxt UI + Nuxt Content。
+
+## 架构
+
+- `app/pages/` 存放各板块的页面路由。
+- `content/` 存放博客、论文、应用与静态页的 Markdown 源文件。
+- `content.config.ts` 定义各板块的集合与 front matter schema。
+- `app/components/` 提供共享的布局组件（hero、grid、header、footer）。
+- `app/assets/css/main.css` 定义视觉体系与布局样式。
+
+## 内容结构
+
+```
+content/
+  index.md              # 首页叙述
+  resume.md             # 简历内容
+  research/index.md     # 研究主页
+  blog/*.md             # 博客文章
+  papers/*.md           # 论文（公开发布 + 主页）
+  apps/*.md             # 个人应用 / 演示
+```
+
+## Front matter 字段
+
+博客文章（`content/blog/*.md`）
+- `title`, `description`, `date`, `tags`, `readingTime`
+
+论文（`content/papers/*.md`）
+- `title`, `summary`, `year`, `venue`, `status`, `authors`, `links`, `highlights`
+
+应用（`content/apps/*.md`）
+- `title`, `summary`, `date`, `status`, `stack`, `links`, `goal`
+
+## 本地开发
+
+```
+pnpm install
+pnpm dev
+```
+
+## 分支流程（模板 vs 私有内容）
+
+- `main` 是公开模板分支。
+- `md` 是私有内容分支，禁止推送。
+- 依赖必须在 `md` 与 `main` 之间保持一致。
+
+安装本地 push 保护（pre-push hook）：
+
+```bash
+bash scripts/install-hooks.sh
+```
+
+在 `md` 更新依赖，然后同步到 `main`：
+
+```bash
+git checkout md
+pnpm update
+git add package.json pnpm-lock.yaml
+git commit -m "chore(deps): update"
+
+bash scripts/sync-deps.sh
+git push origin main
+```
+
+`scripts/sync-deps.sh` 只会 cherry-pick 触及 `package.json` 和 `pnpm-lock.yaml` 的提交。
+
+## 部署（私有）
+
+部署从私有的 `md` 分支构建，并将 `.output` 同步到 VPS。
+部署脚本位于 `.local/deploy.sh`（不提交）。
+
+预期流程：
+- 本地：`pnpm install --frozen-lockfile`，`pnpm build`
+- 远端（若仓库存在）：`git pull`，`pnpm install --frozen-lockfile`
+- 同步：`rsync .output`
+- 重启：`pm2 reload`
+
+脚本会强制本地构建必须在 `md` 分支执行。
