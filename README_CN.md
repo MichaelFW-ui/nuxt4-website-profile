@@ -46,7 +46,7 @@ pnpm dev
 
 - `main` 是公开模板分支。
 - `md` 是私有内容分支，禁止推送。
-- 依赖必须在 `md` 与 `main` 之间保持一致。
+- 除 `content/` 外的所有改动需要在 `md` 与 `main` 之间保持一致。
 
 安装本地 push 保护（pre-push hook）：
 
@@ -59,14 +59,13 @@ bash scripts/install-hooks.sh
 ```bash
 git checkout md
 pnpm update
-git add package.json pnpm-lock.yaml
-git commit -m "chore(deps): update"
+git commit -am "chore(deps): update"
 
 bash scripts/sync-deps.sh
 git push origin main
 ```
 
-`scripts/sync-deps.sh` 只会 cherry-pick 触及 `package.json` 和 `pnpm-lock.yaml` 的提交。
+`scripts/sync-deps.sh` 会把 `md` 分支的所有非 `content/` 变更快照到 `main`，并生成一次同步提交。
 
 ## 部署（私有）
 

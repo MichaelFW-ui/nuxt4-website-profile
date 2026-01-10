@@ -46,7 +46,7 @@ pnpm dev
 
 - `main` is the public template branch.
 - `md` is the private content branch and should never be pushed.
-- Dependencies must stay in sync between `md` and `main`.
+- Everything except `content/` should stay in sync between `md` and `main`.
 
 Install local push guards (pre-push hook):
 
@@ -59,14 +59,13 @@ Update dependencies on `md`, then sync to `main`:
 ```bash
 git checkout md
 pnpm update
-git add package.json pnpm-lock.yaml
-git commit -m "chore(deps): update"
+git commit -am "chore(deps): update"
 
 bash scripts/sync-deps.sh
 git push origin main
 ```
 
-`scripts/sync-deps.sh` only cherry-picks commits that touch `package.json` and `pnpm-lock.yaml`.
+`scripts/sync-deps.sh` snapshots all changes from `md` into `main` except `content/`, and makes a single sync commit.
 
 ## Deployment (private)
 

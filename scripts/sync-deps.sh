@@ -3,11 +3,7 @@ set -euo pipefail
 
 BASE_BRANCH="${BASE_BRANCH:-main}"
 SOURCE_BRANCH="${SOURCE_BRANCH:-md}"
-
-ALLOWED_FILES=(
-  "package.json"
-  "pnpm-lock.yaml"
-)
+EXCLUDE_PATH="${EXCLUDE_PATH:-content}"
 
 if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   echo "Not a git repository." >&2
@@ -29,34 +25,26 @@ if ! git show-ref --verify --quiet "refs/heads/${SOURCE_BRANCH}"; then
   exit 1
 fi
 
-mapfile -t COMMITS < <(git rev-list --reverse "${BASE_BRANCH}..${SOURCE_BRANCH}" -- "${ALLOWED_FILES[@]}")
+if [ "${BASE_BRANCH}" = "${SOURCE_BRANCH}" ]; then
+  echo "BASE_BRANCH and SOURCE_BRANCH must be different." >&2
+  exit 1
+fi
 
-if [ "${#COMMITS[@]}" -eq 0 ]; then
-  echo "No dependency commits to cherry-pick from ${SOURCE_BRANCH} to ${BASE_BRANCH}."
+if git diff --quiet "${BASE_BRANCH}..${SOURCE_BRANCH}" -- . ":(exclude)${EXCLUDE_PATH}"; then
+  echo "No non-content changes to sync from ${SOURCE_BRANCH} to ${BASE_BRANCH}."
   exit 0
 fi
 
-allowed_set() {
-  local f
-  for f in "${ALLOWED_FILES[@]}"; do
-    if [ "$f" = "$1" ]; then
-      return 0
-    fi
-  done
-  return 1
+PATCH_FILE="$(mktemp -t sync-noncontent.XXXXXX.patch)"
+cleanup() {
+  rm -f "${PATCH_FILE}"
 }
+trap cleanup EXIT
 
-for commit in "${COMMITS[@]}"; do
-  while read -r file; do
-    if ! allowed_set "$file"; then
-      echo "Commit ${commit} touches non-dependency file: ${file}" >&2
-      echo "Split dependency changes into their own commit before syncing." >&2
-      exit 1
-    fi
-  done < <(git diff --name-only "${commit}^" "${commit}")
-done
+git diff --binary "${BASE_BRANCH}..${SOURCE_BRANCH}" -- . ":(exclude)${EXCLUDE_PATH}" > "${PATCH_FILE}"
 
 git switch "${BASE_BRANCH}" >/dev/null
-git cherry-pick "${COMMITS[@]}"
+git apply --index "${PATCH_FILE}"
+git commit -m "sync: snapshot from ${SOURCE_BRANCH} (exclude ${EXCLUDE_PATH})"
 
-echo "Cherry-picked ${#COMMITS[@]} dependency commit(s) onto ${BASE_BRANCH}."
+echo "Synced non-content changes from ${SOURCE_BRANCH} to ${BASE_BRANCH}."
