@@ -36,6 +36,6 @@ Apps (`content/apps/*.md`)
 ## Commands
 
 ```
-npm install
-npm run dev
+pnpm install
+pnpm dev
 ```

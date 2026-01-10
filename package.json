@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "preinstall": "node -e \"const ua=process.env.npm_config_user_agent||''; if(!ua.startsWith('pnpm/')){console.error('Please use pnpm'); process.exit(1);}\"",
     "dev": "nuxt dev",
     "build": "nuxt build",
     "preview": "nuxt preview",
