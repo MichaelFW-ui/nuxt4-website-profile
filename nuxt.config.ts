@@ -26,6 +26,33 @@ export default defineNuxtConfig(async () => {
     content: {
       documentDriven: false
     },
+    routeRules: {
+      '/': { prerender: true },
+      '/blog/**': {
+        swr: 300,
+        headers: {
+          'cache-control': 'public, max-age=0, s-maxage=300, stale-while-revalidate=600'
+        }
+      },
+      '/papers/**': {
+        swr: 600,
+        headers: {
+          'cache-control': 'public, max-age=0, s-maxage=600, stale-while-revalidate=1200'
+        }
+      },
+      '/apps/**': {
+        swr: 600,
+        headers: {
+          'cache-control': 'public, max-age=0, s-maxage=600, stale-while-revalidate=1200'
+        }
+      },
+      '/resume': {
+        swr: 86400,
+        headers: {
+          'cache-control': 'public, max-age=0, s-maxage=86400, stale-while-revalidate=172800'
+        }
+      }
+    },
     ...(localNuxtConfig ?? {})
   }
 })
