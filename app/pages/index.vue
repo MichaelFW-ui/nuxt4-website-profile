@@ -37,11 +37,11 @@ const { data: homeDoc } = await useAsyncData(() =>
   </section>
 
   <SectionHero title="Latest writing" subtitle="Notes, experiments, and project write-ups." />
-  <ContentGrid :items="latestPosts" type="blog" empty-title="No blog posts yet" />
+  <ContentGrid :items="latestPosts" type="blog" :columns="3" empty-title="No blog posts yet" />
 
   <SectionHero title="Research outputs" subtitle="Public releases and paper homepages." />
-  <ContentGrid :items="recentPapers" type="paper" empty-title="No papers yet" />
+  <ContentGrid :items="recentPapers" type="paper" :columns="3" empty-title="No papers yet" />
 
   <SectionHero title="Personal apps" subtitle="Interactive demos and web experiments." />
-  <ContentGrid :items="featuredApps" type="app" empty-title="No apps yet" />
+  <ContentGrid :items="featuredApps" type="app" :columns="3" empty-title="No apps yet" />
 </template>

@@ -22,7 +22,8 @@ const formatDate = (value?: string) => {
     <div class="container">
       <article class="prose">
         <div class="card-meta">
-          <span v-if="doc.date">{{ formatDate(doc.date) }}</span>
+          <span v-if="doc.date">Published {{ formatDate(doc.date) }}</span>
+          <span v-if="doc.updated">Updated {{ formatDate(doc.updated) }}</span>
           <span v-if="doc.readingTime">{{ doc.readingTime }} min read</span>
         </div>
         <ContentRenderer :value="doc" />

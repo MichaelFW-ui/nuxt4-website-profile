@@ -4,8 +4,10 @@ const props = withDefaults(defineProps<{
   type: 'blog' | 'paper' | 'app'
   emptyTitle?: string
   emptyText?: string
+  columns?: 2 | 3
 }>(), {
-  items: () => []
+  items: () => [],
+  columns: 2
 })
 
 const formatDate = (value?: string) => {
@@ -17,22 +19,33 @@ const formatDate = (value?: string) => {
   })
 }
 
+const blogPublished = (item: any) => formatDate(item?.date)
+const blogUpdated = (item: any) => formatDate(item?.updated)
+
 const metaLabel = (item: any) => {
-  if (props.type === 'blog') return formatDate(item.date)
   if (props.type === 'paper') return item.venue || item.year
   return item.status || item.stack
 }
+
+const gridClass = computed(() => (props.columns === 3 ? 'grid-3' : 'grid-2'))
 </script>
 
 <template>
   <section class="section">
     <div class="container">
-      <div v-if="items?.length" class="grid grid-3">
+      <div v-if="items?.length" class="grid" :class="gridClass">
         <article v-for="item in items" :key="item.path || item._path" class="card">
           <div class="card-meta">
-            <span v-if="metaLabel(item)">{{ metaLabel(item) }}</span>
-            <span v-if="item.year" class="badge">{{ item.year }}</span>
-            <span v-if="item.status" class="badge">{{ item.status }}</span>
+            <template v-if="type === 'blog'">
+              <span v-if="item.date">Published {{ blogPublished(item) }}</span>
+              <span v-if="item.updated">Updated {{ blogUpdated(item) }}</span>
+              <span v-if="item.readingTime">{{ item.readingTime }} min read</span>
+            </template>
+            <template v-else>
+              <span v-if="metaLabel(item)">{{ metaLabel(item) }}</span>
+              <span v-if="item.year" class="badge">{{ item.year }}</span>
+              <span v-if="item.status" class="badge">{{ item.status }}</span>
+            </template>
           </div>
           <div>
             <h3>{{ item.title }}</h3>
