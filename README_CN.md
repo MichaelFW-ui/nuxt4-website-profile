@@ -79,3 +79,74 @@ git push origin main
 - 重启：`pm2 reload`
 
 脚本会强制本地构建必须在 `md` 分支执行。
+
+示例脚本（使用占位值，真实脚本放在 `.local/deploy.sh`）：
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ====== 修改这里 ======
+VPS_USER="your-user"            # 或者 ubuntu / deploy
+VPS_HOST="your-host"            # VPS IP 或域名
+VPS_SSH_HOST="your-ssh-alias"   # ssh 别名或 user@host；非空则覆盖 VPS_USER/VPS_HOST
+VPS_APP_DIR="/var/www/nuxt-app/current"
+APP_NAME="nuxt-app"
+SSH_PORT="22"
+BUILD_BRANCH="md"
+# ======================
+
+SSH_TARGET="${VPS_SSH_HOST:-}"
+if [ -z "$SSH_TARGET" ]; then
+  SSH_TARGET="${VPS_USER}@${VPS_HOST}"
+fi
+
+CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+if [ "$CURRENT_BRANCH" != "$BUILD_BRANCH" ]; then
+  echo "Build must run on '${BUILD_BRANCH}' branch (current: ${CURRENT_BRANCH})." >&2
+  exit 1
+fi
+
+echo "[1/5] Build (local)"
+pnpm install --frozen-lockfile
+pnpm build
+
+echo "[2/5] Pull repo on VPS"
+ssh -p "${SSH_PORT}" "${SSH_TARGET}" "bash -lc 'if git -C \"${VPS_APP_DIR}\" rev-parse --is-inside-work-tree >/dev/null 2>&1; then git -C \"${VPS_APP_DIR}\" fetch --prune && git -C \"${VPS_APP_DIR}\" pull --ff-only; else echo \"Missing git repo at ${VPS_APP_DIR}\"; exit 1; fi'"
+
+echo "[3/5] Install deps on VPS"
+ssh -p "${SSH_PORT}" "${SSH_TARGET}" "bash -lc 'if git -C \"${VPS_APP_DIR}\" rev-parse --is-inside-work-tree >/dev/null 2>&1; then cd \"${VPS_APP_DIR}\" && pnpm install --frozen-lockfile; else echo \"Missing git repo at ${VPS_APP_DIR}\"; exit 1; fi'"
+
+echo "[4/5] Rsync .output -> VPS"
+rsync -az --delete \
+  -e "ssh -p ${SSH_PORT}" \
+  .output/ \
+  "${SSH_TARGET}:${VPS_APP_DIR}/.output/"
+
+echo "[5/5] Reload pm2 on VPS"
+ssh -p "${SSH_PORT}" "${SSH_TARGET}" "bash -lc 'cd \"${VPS_APP_DIR}\" && pm2 reload \"${APP_NAME}\" || pm2 start ecosystem.config.cjs && pm2 save'"
+
+echo "[6/6] Done"
+```
+
+PM2 示例（`ecosystem.config.cjs`）：
+
+```js
+module.exports = {
+  apps: [
+    {
+      name: "nuxt-app",
+      script: ".output/server/index.mjs",
+      exec_interpreter: "node",
+      instances: 1,
+      autorestart: true,
+      watch: false,
+      max_memory_restart: "400M",
+      env: {
+        NODE_ENV: "production",
+        PORT: 3000
+      }
+    }
+  ]
+};
+```
