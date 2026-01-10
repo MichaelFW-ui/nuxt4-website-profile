@@ -48,3 +48,4 @@ coverage
 # Misc
 *.local
 deploy.local.sh
+AGENTS.md

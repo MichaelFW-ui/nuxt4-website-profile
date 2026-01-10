@@ -21,6 +21,7 @@ export default defineContentConfig({
       source: 'blog/*.md',
       schema: pageSchema.extend({
         date: z.string().optional(),
+        updated: z.string().optional(),
         tags: z.array(z.string()).optional(),
         readingTime: z.number().optional()
       })

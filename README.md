@@ -27,7 +27,7 @@ content/
 ## Front matter fields
 
 Blog posts (`content/blog/*.md`)
-- `title`, `description`, `date`, `tags`, `readingTime`
+- `title`, `description`, `date`, `updated`, `tags`, `readingTime`
 
 Papers (`content/papers/*.md`)
 - `title`, `summary`, `year`, `venue`, `status`, `authors`, `links`, `highlights`
@@ -46,6 +46,25 @@ pnpm dev
 
 - `nuxt.app.config.local.ts` overrides `app` config (title/meta/links).
 - `nuxt.config.local.ts` overrides any Nuxt config settings.
+
+## Post metadata automation
+
+`scripts/refresh-posts.sh` updates blog front matter:
+- keeps `date` (creation date), adds it if missing
+- updates `updated` (last edit date)
+- recalculates `readingTime`
+
+Create a new post with only a title:
+
+```bash
+bash scripts/refresh-posts.sh new "My New Post"
+```
+
+Refresh all posts:
+
+```bash
+bash scripts/refresh-posts.sh
+```
 
 ## Branching workflow (template vs. private content)
 
@@ -112,26 +131,29 @@ if [ "$CURRENT_BRANCH" != "$BUILD_BRANCH" ]; then
   exit 1
 fi
 
-echo "[1/5] Build (local)"
+echo "[1/6] Refresh post metadata"
+bash scripts/refresh-posts.sh
+
+echo "[2/6] Build (local)"
 pnpm install --frozen-lockfile
 pnpm build
 
-echo "[2/5] Pull repo on VPS"
+echo "[3/6] Pull repo on VPS"
 ssh -p "${SSH_PORT}" "${SSH_TARGET}" "bash -lc 'if git -C \"${VPS_APP_DIR}\" rev-parse --is-inside-work-tree >/dev/null 2>&1; then git -C \"${VPS_APP_DIR}\" fetch --prune && git -C \"${VPS_APP_DIR}\" pull --ff-only; else echo \"Missing git repo at ${VPS_APP_DIR}\"; exit 1; fi'"
 
-echo "[3/5] Install deps on VPS"
+echo "[4/6] Install deps on VPS"
 ssh -p "${SSH_PORT}" "${SSH_TARGET}" "bash -lc 'if git -C \"${VPS_APP_DIR}\" rev-parse --is-inside-work-tree >/dev/null 2>&1; then cd \"${VPS_APP_DIR}\" && pnpm install --frozen-lockfile; else echo \"Missing git repo at ${VPS_APP_DIR}\"; exit 1; fi'"
 
-echo "[4/5] Rsync .output -> VPS"
+echo "[5/6] Rsync .output -> VPS"
 rsync -az --delete \
   -e "ssh -p ${SSH_PORT}" \
   .output/ \
   "${SSH_TARGET}:${VPS_APP_DIR}/.output/"
 
-echo "[5/5] Reload pm2 on VPS"
+echo "[6/6] Reload pm2 on VPS"
 ssh -p "${SSH_PORT}" "${SSH_TARGET}" "bash -lc 'cd \"${VPS_APP_DIR}\" && pm2 reload \"${APP_NAME}\" || pm2 start ecosystem.config.cjs && pm2 save'"
 
-echo "[6/6] Done"
+echo "Done"
 ```
 
 PM2 example (`ecosystem.config.cjs`):

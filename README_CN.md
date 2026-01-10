@@ -27,7 +27,7 @@ content/
 ## Front matter 字段
 
 博客文章（`content/blog/*.md`）
-- `title`, `description`, `date`, `tags`, `readingTime`
+- `title`, `description`, `date`, `updated`, `tags`, `readingTime`
 
 论文（`content/papers/*.md`）
 - `title`, `summary`, `year`, `venue`, `status`, `authors`, `links`, `highlights`
@@ -46,6 +46,25 @@ pnpm dev
 
 - `nuxt.app.config.local.ts` 用于覆盖 `app` 配置（标题/Meta/字体链接）。
 - `nuxt.config.local.ts` 可覆盖任意 Nuxt 配置。
+
+## 文章元数据自动化
+
+`scripts/refresh-posts.sh` 会更新博客 front matter：
+- 保留 `date`（创建日期），缺失时自动补齐
+- 更新 `updated`（最后编辑日期）
+- 重新计算 `readingTime`
+
+只输入标题创建新文章：
+
+```bash
+bash scripts/refresh-posts.sh new "我的新文章"
+```
+
+刷新所有文章：
+
+```bash
+bash scripts/refresh-posts.sh
+```
 
 ## 分支流程（模板 vs 私有内容）
 
@@ -112,26 +131,29 @@ if [ "$CURRENT_BRANCH" != "$BUILD_BRANCH" ]; then
   exit 1
 fi
 
-echo "[1/5] Build (local)"
+echo "[1/6] Refresh post metadata"
+bash scripts/refresh-posts.sh
+
+echo "[2/6] Build (local)"
 pnpm install --frozen-lockfile
 pnpm build
 
-echo "[2/5] Pull repo on VPS"
+echo "[3/6] Pull repo on VPS"
 ssh -p "${SSH_PORT}" "${SSH_TARGET}" "bash -lc 'if git -C \"${VPS_APP_DIR}\" rev-parse --is-inside-work-tree >/dev/null 2>&1; then git -C \"${VPS_APP_DIR}\" fetch --prune && git -C \"${VPS_APP_DIR}\" pull --ff-only; else echo \"Missing git repo at ${VPS_APP_DIR}\"; exit 1; fi'"
 
-echo "[3/5] Install deps on VPS"
+echo "[4/6] Install deps on VPS"
 ssh -p "${SSH_PORT}" "${SSH_TARGET}" "bash -lc 'if git -C \"${VPS_APP_DIR}\" rev-parse --is-inside-work-tree >/dev/null 2>&1; then cd \"${VPS_APP_DIR}\" && pnpm install --frozen-lockfile; else echo \"Missing git repo at ${VPS_APP_DIR}\"; exit 1; fi'"
 
-echo "[4/5] Rsync .output -> VPS"
+echo "[5/6] Rsync .output -> VPS"
 rsync -az --delete \
   -e "ssh -p ${SSH_PORT}" \
   .output/ \
   "${SSH_TARGET}:${VPS_APP_DIR}/.output/"
 
-echo "[5/5] Reload pm2 on VPS"
+echo "[6/6] Reload pm2 on VPS"
 ssh -p "${SSH_PORT}" "${SSH_TARGET}" "bash -lc 'cd \"${VPS_APP_DIR}\" && pm2 reload \"${APP_NAME}\" || pm2 start ecosystem.config.cjs && pm2 save'"
 
-echo "[6/6] Done"
+echo "Done"
 ```
 
 PM2 示例（`ecosystem.config.cjs`）：
