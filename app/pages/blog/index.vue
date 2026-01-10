@@ -76,6 +76,7 @@ const filteredPosts = computed(() => {
           <p class="card-meta">Showing {{ filteredPosts?.length || 0 }} posts</p>
         </div>
       </div>
+      <p class="page-hint">Tip: use search or tags to narrow the list.</p>
     </div>
   </section>
   <ContentGrid :items="filteredPosts" type="blog" />
