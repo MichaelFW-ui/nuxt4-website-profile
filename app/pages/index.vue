@@ -32,10 +32,10 @@ const {
 )
 
 onMounted(() => {
-  void refreshLatestPosts()
-  void refreshRecentPapers()
-  void refreshFeaturedApps()
-  void refreshHomeDoc()
+  // void refreshLatestPosts()
+  // void refreshRecentPapers()
+  // void refreshFeaturedApps()
+  // void refreshHomeDoc()
 })
 </script>
 

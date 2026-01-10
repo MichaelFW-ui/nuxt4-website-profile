@@ -51,6 +51,18 @@ export default defineNuxtConfig(async () => {
         headers: {
           'cache-control': 'public, max-age=0, s-maxage=86400, stale-while-revalidate=172800'
         }
+      },
+      '/research': {
+        swr: 86400,
+        headers: {
+          'cache-control': 'public, max-age=0, s-maxage=86400, stale-while-revalidate=172800'
+        }
+      },
+      '/application/**': {
+        headers: {
+          // 对浏览器与CDN都不缓存（并避免CF误缓存）
+          'cache-control': 'private, no-store, no-cache, max-age=0, must-revalidate'
+        }
       }
     },
     ...(localNuxtConfig ?? {})
