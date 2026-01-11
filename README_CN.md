@@ -24,6 +24,38 @@ content/
   apps/*.md             # 个人应用 / 演示
 ```
 
+## Markdown 图片
+
+- 图片放在 `public/`（推荐 `public/images/`），由 Nuxt 直接对外提供。
+- 在 Markdown 中用绝对路径引用，例如 `/images/001.png`。
+- Markdown 图片由 `app/components/content/ProseImg.vue` 渲染，默认 `loading="lazy"`，`max-width: 100%`，`width: 100%`。
+- 可用 MDC 属性对单张图片做样式控制：
+
+```md
+![半宽居中](/images/001.png){.content-img--w-50 .content-img--center}
+![圆角](/images/001.png){.content-img--rounded}
+![直角](/images/001.png){.content-img--square}
+![右对齐](/images/001.png){.content-img--w-33 .content-img--right}
+![立即加载](/images/001.png){loading="eager"}
+```
+
+- 支持的 class：
+  - 对齐：`.content-img--center`、`.content-img--left`、`.content-img--right`
+  - 宽度：`.content-img--w-25`、`.content-img--w-33`、`.content-img--w-50`、`.content-img--w-66`、`.content-img--w-75`、`.content-img--w-100`
+  - 形状：`.content-img--rounded`、`.content-img--square`
+- 也支持 MDC 的行内样式，例如 `{style="border-radius: 6px"}`。
+
+## Markdown 数学公式
+
+- 行内：`$E = mc^2$`
+- 行间：
+
+```md
+$$
+\int_0^\infty e^{-x^2} \, dx = \frac{\sqrt{\pi}}{2}
+$$
+```
+
 ## Front matter 字段
 
 博客文章（`content/blog/*.md`）

@@ -21,10 +21,20 @@ export default defineNuxtConfig(async () => {
     srcDir: 'app/',
     compatibilityDate: '2026-01-04',
     modules: ['@nuxt/ui', '@nuxt/content'],
-    css: ['~/assets/css/main.css'],
+    css: ['~/assets/css/main.css', 'katex/dist/katex.min.css'],
     app: localAppConfig ?? appConfig,
     content: {
-      documentDriven: false
+      documentDriven: false,
+      build: {
+        markdown: {
+          remarkPlugins: {
+            'remark-math': {}
+          },
+          rehypePlugins: {
+            'rehype-katex': {}
+          }
+        }
+      }
     },
     routeRules: {
       '/': { prerender: true },

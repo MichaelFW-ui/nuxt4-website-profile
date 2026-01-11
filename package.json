@@ -12,6 +12,11 @@
   "dependencies": {
     "@nuxt/content": "^3.0.0",
     "@nuxt/ui": "^3.0.0",
+    "katex": "^0.16.10",
     "nuxt": "^4.0.0"
+  },
+  "devDependencies": {
+    "rehype-katex": "^7.0.0",
+    "remark-math": "^6.0.0"
   }
 }

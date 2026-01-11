@@ -34,6 +34,66 @@ p {
   line-height: 1.7;
 }
 
+.content-img {
+  max-width: 100%;
+  width: 100%;
+  height: auto;
+  display: block;
+  margin: 1.25rem 0;
+}
+
+.content-img--rounded {
+  border-radius: 18px;
+}
+
+.content-img--square {
+  border-radius: 0;
+}
+
+.content-img--center {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.content-img--left {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+.content-img--right {
+  margin-left: auto;
+  margin-right: 0;
+}
+
+.content-img--w-25 {
+  width: 25%;
+}
+
+.content-img--w-33 {
+  width: 33.3333%;
+}
+
+.content-img--w-50 {
+  width: 50%;
+}
+
+.content-img--w-66 {
+  width: 66.6667%;
+}
+
+.content-img--w-75 {
+  width: 75%;
+}
+
+.content-img--w-100 {
+  width: 100%;
+}
+
+.prose img {
+  max-width: 100%;
+  height: auto;
+}
+
 .loading-hint {
   font-size: 0.95rem;
   letter-spacing: 0.02em;

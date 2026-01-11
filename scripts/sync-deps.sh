@@ -3,7 +3,7 @@ set -euo pipefail
 
 BASE_BRANCH="${BASE_BRANCH:-main}"
 SOURCE_BRANCH="${SOURCE_BRANCH:-md}"
-EXCLUDE_PATH="${EXCLUDE_PATH:-content}"
+EXCLUDE_PATHS="${EXCLUDE_PATHS:-${EXCLUDE_PATH:-content} public}"
 
 if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   echo "Not a git repository." >&2
@@ -30,7 +30,12 @@ if [ "${BASE_BRANCH}" = "${SOURCE_BRANCH}" ]; then
   exit 1
 fi
 
-if git diff --quiet "${BASE_BRANCH}..${SOURCE_BRANCH}" -- . ":(exclude)${EXCLUDE_PATH}"; then
+exclude_args=()
+for path in ${EXCLUDE_PATHS}; do
+  exclude_args+=(":(exclude)${path}")
+done
+
+if git diff --quiet "${BASE_BRANCH}..${SOURCE_BRANCH}" -- . "${exclude_args[@]}"; then
   echo "No non-content changes to sync from ${SOURCE_BRANCH} to ${BASE_BRANCH}."
   exit 0
 fi
@@ -41,10 +46,10 @@ cleanup() {
 }
 trap cleanup EXIT
 
-git diff --binary "${BASE_BRANCH}..${SOURCE_BRANCH}" -- . ":(exclude)${EXCLUDE_PATH}" > "${PATCH_FILE}"
+git diff --binary "${BASE_BRANCH}..${SOURCE_BRANCH}" -- . "${exclude_args[@]}" > "${PATCH_FILE}"
 
 git switch "${BASE_BRANCH}" >/dev/null
 git apply --index "${PATCH_FILE}"
-git commit -m "sync: snapshot from ${SOURCE_BRANCH} (exclude ${EXCLUDE_PATH})"
+git commit -m "sync: snapshot from ${SOURCE_BRANCH} (exclude ${EXCLUDE_PATHS})"
 
 echo "Synced non-content changes from ${SOURCE_BRANCH} to ${BASE_BRANCH}."

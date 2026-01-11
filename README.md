@@ -24,6 +24,38 @@ content/
   apps/*.md             # personal apps / demos
 ```
 
+## Images in Markdown content
+
+- Store images in `public/` (recommended: `public/images/`) so Nuxt can serve them.
+- Reference them in Markdown with absolute paths like `/images/001.png`.
+- Markdown images are rendered by `app/components/content/ProseImg.vue` with `loading="lazy"`, `max-width: 100%`, and `width: 100%`.
+- Use MDC attributes to style per image:
+
+```md
+![Centered half width](/images/001.png){.content-img--w-50 .content-img--center}
+![Rounded](/images/001.png){.content-img--rounded}
+![Square](/images/001.png){.content-img--square}
+![Right aligned](/images/001.png){.content-img--w-33 .content-img--right}
+![Eager load](/images/001.png){loading="eager"}
+```
+
+- Supported classes:
+  - Alignment: `.content-img--center`, `.content-img--left`, `.content-img--right`
+  - Width: `.content-img--w-25`, `.content-img--w-33`, `.content-img--w-50`, `.content-img--w-66`, `.content-img--w-75`, `.content-img--w-100`
+  - Shape: `.content-img--rounded`, `.content-img--square`
+- Inline styles are supported via MDC attributes, e.g. `{style="border-radius: 6px"}`.
+
+## Math in Markdown
+
+- Inline: `$E = mc^2$`
+- Block:
+
+```md
+$$
+\int_0^\infty e^{-x^2} \, dx = \frac{\sqrt{\pi}}{2}
+$$
+```
+
 ## Front matter fields
 
 Blog posts (`content/blog/*.md`)
