@@ -2,7 +2,7 @@
 set -euo pipefail
 
 node --input-type=module - "$@" <<'NODE'
-import { existsSync, readFileSync, writeFileSync, readdirSync } from 'node:fs'
+import { existsSync, readFileSync, writeFileSync, readdirSync, statSync } from 'node:fs'
 import { join, extname } from 'node:path'
 
 const mode = process.argv[2] ?? 'refresh'
@@ -41,7 +41,24 @@ const normalizeLine = (key, value) => {
   return `${key}: "${value}"`
 }
 
-const updateFrontmatter = (lines, readingTimeValue) => {
+const formatDate = (value) => {
+  const date = value instanceof Date ? value : new Date(value)
+  if (Number.isNaN(date.getTime())) {
+    return today
+  }
+  return date.toISOString().slice(0, 10)
+}
+
+const getUpdatedDate = (filePath) => {
+  try {
+    const stat = statSync(filePath)
+    return formatDate(stat.mtime)
+  } catch {
+    return today
+  }
+}
+
+const updateFrontmatter = (lines, readingTimeValue, updatedValue) => {
   let hasDate = false
   let hasUpdated = false
   let hasReadingTime = false
@@ -54,7 +71,7 @@ const updateFrontmatter = (lines, readingTimeValue) => {
     }
     if (trimmed.startsWith('updated:')) {
       hasUpdated = true
-      return normalizeLine('updated', today)
+      return normalizeLine('updated', updatedValue)
     }
     if (trimmed.startsWith('readingTime:')) {
       hasReadingTime = true
@@ -67,7 +84,7 @@ const updateFrontmatter = (lines, readingTimeValue) => {
     updatedLines.push(normalizeLine('date', today))
   }
   if (!hasUpdated) {
-    updatedLines.push(normalizeLine('updated', today))
+    updatedLines.push(normalizeLine('updated', updatedValue))
   }
   if (!hasReadingTime) {
     updatedLines.push(normalizeLine('readingTime', readingTimeValue))
@@ -81,7 +98,8 @@ const refreshFile = (filePath) => {
   const { frontmatterLines, body, hasFrontmatter } = splitFrontmatter(raw)
   const words = countWords(body)
   const readingTimeValue = Math.max(1, Math.ceil(words / wpm))
-  const newFrontmatter = updateFrontmatter(frontmatterLines, readingTimeValue)
+  const updatedValue = getUpdatedDate(filePath)
+  const newFrontmatter = updateFrontmatter(frontmatterLines, readingTimeValue, updatedValue)
 
   const output = [
     '---',
